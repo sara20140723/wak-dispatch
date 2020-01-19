@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wak.dispatch.dao.workstation.WorkstationMapper">
+    <resultMap id="BaseResultMap" type="com.wak.dispatch.model.dto.WorkstationDto">
+        <id column="workstation_id" property="workstationId" javaType="string" jdbcType="VARCHAR"/>
+        <result column="workstation_name" property="workstationName" javaType="string" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        d.user_id userId,d.workstation_id workstationId,d.order_id orderId,d.`status` dispatchStatus,d.recevie_user_name receiveUserName,d.recevie_address receiveAddress,d.recevie_phone receivePhone,
+d.order_create_time receiveCreateTime,d.product_json productJson,AsText(d.address_location) addressLocation,x(d.address_location) locationX,y(d.address_location) locationY
+    </sql>
+    <sql id="DispatchOrder_List_Where">
+        WHERE d.deleted=0 AND d.user_id=#{userId}
+        <if test="status>0 ">
+            AND d.`status`=#{status}
+        </if>
+    </sql>
+
+    <!--我负责的站点-->
+    <select id="findWorkstationsByUserId" resultType="com.wak.dispatch.model.dto.WorkstationDto"
+            parameterType="java.util.Map">
+
+        SELECT w.id workstationId,w.workstation_name workstationName,w.`status`
+        FROM dispatch_user u INNER JOIN dispatch_user_relation_workstation r
+        ON u.user_id =r.dispatch_user_id AND u.deleted=0 AND r.deleted=0
+        INNER JOIN workstation w ON r.workstation_id=w.id AND w.deleted=0 AND r.deleted=0
+        WHERE u.user_id=1
+        ORDER BY w.create_time DESC
+        <if test="offset!=null and limit!=null ">
+            LIMIT #{offset} , #{limit}
+        </if>;
+    </select>
+
+    <select id="findWorkstationsCntByUserId" resultType="java.lang.Integer"
+            parameterType="java.util.Map">
+        SELECT count(1)
+        FROM dispatch_user u INNER JOIN dispatch_user_relation_workstation r
+        ON u.user_id =r.dispatch_user_id AND u.deleted=0 AND r.deleted=0
+        INNER JOIN workstation w ON r.workstation_id=w.id AND w.deleted=0 AND r.deleted=0
+        WHERE u.user_id=1;
+    </select>
+</mapper>

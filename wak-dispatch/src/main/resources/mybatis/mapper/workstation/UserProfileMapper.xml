@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wak.dispatch.dao.workstation.UserProfileMapper">
+  <resultMap id="BaseResultMap" type="com.wak.dispatch.model.dto.UserProfileDto">
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="user_id" property="user_id" javaType="string" jdbcType="VARCHAR" />
+    <id column="user_id" property="user_id" javaType="string" jdbcType="VARCHAR" />
+    <result column="nick_name" property="nickName" javaType="string" jdbcType="VARCHAR" />
+    <result column="avatars" property="avatars" javaType="string" jdbcType="VARCHAR" />
+    <result column="description" property="description" javaType="string" jdbcType="VARCHAR" />
+    <result column="reg_time" property="regTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="description" jdbcType="INTEGER" />
+  </resultMap>
+
+  <select id="findByUserId" resultType="com.wak.dispatch.model.dto.UserProfileDto">
+    SELECT u.user_id userId,p.dispatch_user_id dispatchUserId,p.nick_name nickName,p.avatars,p.description,p.reg_time regTime,p.status
+    FROM dispatch_user_profile p INNER JOIN dispatch_user u ON p.dispatch_user_id=u.user_id
+    WHERE p.dispatch_user_id=#{userId} AND p.deleted=0 AND u.deleted=0
+    ORDER BY create_time DESC
+  </select>
+
+  <select id="findByAccount" resultType="com.wak.dispatch.model.dto.UserProfileDto" parameterType="java.lang.String">
+  SELECT p.user_id userId,p.nick_name nickName,p.avatars,p.description,p.reg_time regTime,p.status
+  FROM dispatch_user u INNER JOIN dispatch_user_profile p on u.id=p.user_id
+  WHERE u.account=#{account} AND u.deleted=0 AND p.deleted=0
+  ORDER BY create_time DESC
+  </select>
+
+  <insert id="insertSingleRecord" parameterType="com.wak.dispatch.model.dto.UserProfileDto">
+    INSERT INTO `dispatch_user_profile` (`dispatch_user_id`, `sex`, `nick_name`, `avatars`, `description`, `reg_time`, `status`, `business_time_begin`, `business_time_end`, `create_time`, `create_user_id`, `update_time`, `update_user_id`, `deleted`)
+    VALUE(#{dispatchUserId,jdbcType=VARCHAR},#{sex,jdbcType=VARCHAR},#{nickName,jdbcType=VARCHAR},#{avatars,jdbcType=VARCHAR},#{description,jdbcType=VARCHAR},NOW(),0,NOW(),NOW(),NOW(),NULL,NOW(),NULL,0)
+  </insert>
+</mapper>

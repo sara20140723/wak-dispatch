@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wak.dispatch.dao.dispatch.DispatchOrderMapper">
+    <resultMap id="BaseResultMap" type="com.wak.dispatch.model.dto.DispatchOrderDto">
+        <id column="user_id" property="userId" javaType="string" jdbcType="VARCHAR"/>
+        <result column="workstation_id" property="workstationId" javaType="string" jdbcType="VARCHAR"/>
+        <result column="order_id" property="orderId" javaType="string" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        d.dispatch_user_id userId,d.workstation_id workstationId,d.order_id orderId,d.`status` dispatchStatus,d.customer_user_name receiveUserName,d.order_address_detail receiveAddress,d.customer_phone receivePhone, d.order_create_time receiveCreateTime,d.order_json productJson,AsText(d.order_location) addressLocation,x(d.order_location) locationX,y(d.order_location) locationY
+    </sql>
+    <sql id="DispatchOrder_List_Where">
+        WHERE d.deleted=0
+        <if test="userId==null ">
+            AND d.dispatch_user_id=null OR d.dispatch_user_id=''
+        </if>
+        <if test="userId!=null ">
+            AND d.dispatch_user_id=#{userId}
+        </if>
+        <if test="status>0 ">
+            AND d.`status`=#{status}
+        </if>
+    </sql>
+
+    <!--每天派送量-->
+    <select id="findDispatchTimesOfDayByUserId" resultType="java.lang.Integer">
+  SELECT COUNT(1) amount
+  FROM dispatch_order
+  WHERE deleted=0 AND `status`=3 AND dispatch_user_id=#{userId}
+  </select>
+
+    <!--累计派送量-->
+    <select id="findDispatchTimesByUserId" resultType="java.lang.Integer">
+  SELECT COUNT(1) amount
+  FROM dispatch_order
+  WHERE deleted=0 AND `status`=3 AND dispatch_user_id=#{userId}
+  </select>
+
+    <!--待取货，配送中，全部-->
+    <select id="findDispatchOrdersByUserId" resultType="com.wak.dispatch.model.dto.DispatchOrderDto" parameterType="map">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM dispatch_order d
+
+        <include refid="DispatchOrder_List_Where"/>
+        ORDER BY d.create_time DESC
+        <if test="offset!=null and limit!=null ">
+            LIMIT #{offset} , #{limit}
+        </if>
+    </select>
+
+    <select id="findDispatchOrdersCntByUserId" resultType="java.lang.Integer" parameterType="map">
+        SELECT count(1)
+        FROM dispatch_order d
+        <include refid="DispatchOrder_List_Where"/>
+    </select>
+
+    <update id="updateDispatchStatus" parameterType="java.util.Map">
+        UPDATE dispatch_order
+        SET `status`=#{status,jdbcType=BIGINT}
+        WHERE order_id=#{orderId,jdbcType=VARCHAR} AND dispatch_user_id=#{orderId,jdbcType=VARCHAR} AND deleted=0
+    </update>
+</mapper>
